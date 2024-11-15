@@ -16,6 +16,7 @@ def main():
         You are an agent designed to write and execute Python code to answer questions.
         You have access to a python REPL, which you can use to execute python code.
         You have qrcode package installed.
+        You have to give always a name, never an id.+
         If you get an error, debug your code and try again.
         Only use the output of your code to answer the question.
         You might know the answer without running any code, but you should still run the code to get the answer.
@@ -36,9 +37,27 @@ def main():
 
     agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 
-    csv_agent_executor : AgentExecutor = create_csv_agent(
+    netflix_agent_executor : AgentExecutor = create_csv_agent(
         llm= ChatOpenAI(temperature=0, model='gpt-4'),
-        path="episode_info.csv",
+        path="netflix_titles.csv",
+        verbose=True,
+        allow_dangerous_code = True,
+    )
+    hbo_agent_executor : AgentExecutor = create_csv_agent(
+        llm= ChatOpenAI(temperature=0, model='gpt-4'),
+        path="data.csv",
+        verbose=True,
+        allow_dangerous_code = True,
+    )
+    disney_agent_executor : AgentExecutor = create_csv_agent(
+        llm= ChatOpenAI(temperature=0, model='gpt-4'),
+        path="disney_plus_titles.csv",
+        verbose=True,
+        allow_dangerous_code = True,
+    )
+    primev_agent_executor : AgentExecutor = create_csv_agent(
+        llm= ChatOpenAI(temperature=0, model='gpt-4'),
+        path="amazon_prime_titles.csv",
         verbose=True,
         allow_dangerous_code = True,
     )
@@ -55,9 +74,30 @@ def main():
             DOES NOT ACCEPT CODE AS INPUT""",
         ),
         Tool(
-            name="CSV Agent",
-            func=csv_agent_executor.invoke,
-            description="""useful when you need to answer questions over episode_info.csv file,
+            name="Prime_Video Agent",
+            func=primev_agent_executor.invoke,
+            description="""useful when you need to answer questions related to Prime Video series and movies in amazon_prime_titles.csv file,
+            takes as an input the entire question and returns the answer after running pandas calculation
+            """,
+        ),
+        Tool(
+            name="Disney+ Agent",
+            func=disney_agent_executor.invoke,
+            description="""useful when you need to answer questions related to Disney+ series and movies in disney_plus_titles.csv file,
+            takes as an input the entire question and returns the answer after running pandas calculation
+            """,
+        ),
+        Tool(
+            name="Max Agent",
+            func=hbo_agent_executor.invoke,
+            description="""useful when you need to answer questions related to Max series and movies in data.csv file,
+            takes as an input the entire question and returns the answer after running pandas calculation
+            """,
+        ),
+        Tool(
+            name="Netflix Agent",
+            func=netflix_agent_executor.invoke,
+            description="""useful when you need to answer questions related to Netflix series and movies in netflix_titles.csv file,
             takes as an input the entire question and returns the answer after running pandas calculation
             """,
         ),
@@ -75,18 +115,10 @@ def main():
         verbose=True,
     )
 
-    # print(
-    #     grand_agent_executor.invoke(
-    #         {
-    #             "input": "Which season has the most episodes?"
-    #         }
-    #     )
-    # )
-
     print(
         grand_agent_executor.invoke(
             {
-                "input": "Generate and save in current working directory 15 qrcodes that point to www.google.com"
+                "input": "Give me a function for obtainig factorial for a number"
             }
         )
     )

@@ -39,7 +39,7 @@ myenv/
 *.png
 
 #CSV_file
-*.csv
+#*.csv
 
 # Installer logs
 pip-log.txt
