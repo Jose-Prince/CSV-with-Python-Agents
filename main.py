@@ -1,11 +1,4 @@
-from typing import Any, Dict
 from dotenv import load_dotenv
-from langchain import hub
-from langchain_core.tools import Tool
-from langchain_experimental.agents.agent_toolkits import create_csv_agent
-from langchain_openai import ChatOpenAI
-from langchain.agents import create_react_agent, AgentExecutor
-from langchain_experimental.tools import PythonREPLTool
 import streamlit as st
 from backend import call_output_from_agent
 
@@ -31,38 +24,53 @@ def main():
         unsafe_allow_html=True
     )
 
-    instrucciones = """
-        - Siempre usa la herramienta, incluso si sabes la respuesta.
-        - Debes usar código de Python para responder.
-        - Eres un agente que puede escribir código.
-        - Solo respondes la pregunta escribiendo código se sabes la respuesta.
-        - Si no sabes la respuesta escribe "No sé la respuesta".
+    intructions = """
+        - You are an agent designed to write and execute Python code to answer questions.
+        - You have access to a python REPL, which you can use to execute python code.
+        - You have qrcode package installed.
+        - You have to give always a name, never an id.+
+        - If you get an error, debug your code and try again.
+        - Only use the output of your code to answer the question.
+        - You might know the answer without running any code, but you should still run the code to get the answer.
+        - If it does not seem like you can write code to answer the question, just return "I don't know" as teh answer. 
         """
 
-    st.markdown(instrucciones)
+    st.markdown(intructions)
 
-    st.markdown("### Ejemplos: ")
+    st.markdown("### Examples: ")
     ejemplos = [
-        "Calcula la suma de 2 y 3", 
-        "Genera una lista del 1 al 10", 
-        "Crea una función que calcule el factorial de un número",
-        "Crea un juego básico de snake con la librería pygame"
+        "Create a python function for adding to numbers", 
+        "Sum 5 + 15", 
+        "Create a python function for generating a fibonacci series"
     ]
 
-    example = st.selectbox("Selecciona un ejemplo:", ejemplos)
+    example = st.selectbox("Select an example:", ejemplos)
 
-    if st.button("Ejecutar ejemplo"):
+    if st.button("Execute example"):
         user_input = example
-        print(user_input)
         try:
             respuesta = call_output_from_agent(user_input)
-            st.markdown("### Respuesta del agente: ")
+            st.markdown("### Agent response: ")
             if "output" in respuesta:
                 st.code(respuesta["output"], language="python")
             else:
-                st.error("No se obtuvo una clave de salida válida.")
+                st.error("Could not get valid output key.")
         except Exception as e:
             st.error(f"Error en el agente: {str(e)}")
 
+    st.markdown("### Chat with Agent")
+    input = st.text_input("Write your prompt",placeholder="Enter your prompt here")
+
+    if input:
+        with st.spinner("Generating response..."):
+            try:
+                response = call_output_from_agent(input)
+                st.markdown("### Agent Response: ")
+                if "output" in response:
+                    st.code(response["output"], language="python")
+                else:
+                    st.error("No se obtuvo una clave de salida válida.") 
+            except Exception as e:
+                st.error(f"Error en el agente: {str(e)}")
 if __name__ == '__main__':
     main()
